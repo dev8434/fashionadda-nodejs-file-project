@@ -1,53 +1,52 @@
-import { pool } from '../config/mysql.js';
+import mongoose from 'mongoose';
 
-const findAll = async () => {
-    const [rows] = await pool.query('SELECT * FROM products');
-    return rows.map(row => ({
-        ...row,
-        image: JSON.parse(row.image),
-        sizes: JSON.parse(row.sizes)
-    }));
-};
-
-const findById = async (id) => {
-    const [rows] = await pool.query('SELECT * FROM products WHERE id = ?', [id]);
-    if (rows[0]) {
-        return {
-            ...rows[0],
-            image: JSON.parse(rows[0].image),
-            sizes: JSON.parse(rows[0].sizes)
-        };
+const productSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    description: {
+        type: String,
+        required: true
+    },
+    price: {
+        type: Number,
+        required: true
+    },
+    image: {
+        type: Array,
+        required: true
+    },
+    category: {
+        type: String,
+        required: true
+    },
+    subCategory: {
+        type: String,
+        required: true
+    },
+    sizes: {
+        type: Array,
+        required: true
+    },
+    bestseller: {
+        type: Boolean,
+        default: false
+    },
+    stock: {
+        type: Number,
+        required: true
+    },
+    date: {
+        type: Date,
+        default: Date.now
+    },
+    available: {
+        type: Boolean,
+        default: true
     }
-    return null;
-};
+}, { timestamps: true });
 
-const create = async (product) => {
-    const { name, description, price, image, category, subCategory, sizes, bestseller, stock } = product;
-    const [result] = await pool.query(
-        'INSERT INTO products (name, description, price, image, category, subCategory, sizes, bestseller, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [name, description, price, JSON.stringify(image), category, subCategory, JSON.stringify(sizes), bestseller, stock]
-    );
-    return { id: result.insertId, ...product };
-};
+const productModel = mongoose.models.product || mongoose.model('product', productSchema);
 
-const update = async (id, product) => {
-    const { name, description, price, image, category, subCategory, sizes, bestseller, stock } = product;
-    await pool.query(
-        'UPDATE products SET name = ?, description = ?, price = ?, image = ?, category = ?, subCategory = ?, sizes = ?, bestseller = ?, stock = ? WHERE id = ?',
-        [name, description, price, JSON.stringify(image), category, subCategory, JSON.stringify(sizes), bestseller, stock, id]
-    );
-    return { id, ...product };
-};
-
-const remove = async (id) => {
-    const [result] = await pool.query('DELETE FROM products WHERE id = ?', [id]);
-    return result.affectedRows;
-};
-
-export default {
-    findAll,
-    findById,
-    create,
-    update,
-    remove
-};
+export default productModel;

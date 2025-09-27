@@ -1,16 +1,30 @@
-import { pool } from '../config/mysql.js';
+import mongoose from 'mongoose';
 
-const createFeedback = async (name, email, message, rating) => {
-  const [result] = await pool.execute(
-    'INSERT INTO feedback (name, email, message, rating) VALUES (?, ?, ?, ?)',
-    [name, email, message, rating]
-  );
-  return result;
-};
+const feedbackSchema = new mongoose.Schema({
+    name: {
+        type: String,
+        required: true
+    },
+    email: {
+        type: String,
+        required: true
+    },
+    message: {
+        type: String,
+        required: true
+    },
+    rating: {
+        type: Number,
+        required: true,
+        min: 1,
+        max: 5
+    },
+    createdAt: {
+        type: Date,
+        default: Date.now
+    }
+}, { timestamps: true });
 
-const getFeedbacks = async () => {
-    const [rows] = await pool.execute('SELECT * FROM feedback ORDER BY created_at DESC');
-    return rows;
-};
+const feedbackModel = mongoose.models.feedback || mongoose.model('feedback', feedbackSchema);
 
-export { createFeedback, getFeedbacks };
+export default feedbackModel;
